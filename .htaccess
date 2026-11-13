@@ -1,0 +1,57 @@
+# Avion Partners Limited — static site (replaces the old WordPress .htaccess)
+
+DirectoryIndex index.html
+Options -Indexes
+ErrorDocument 404 /404.html
+
+# ---- Force https://avion.com.ng (no www) ----
+# If the site ever shows "too many redirects" after upload, the host terminates SSL
+# in front of Apache: delete the two "HTTPS" lines below and enable "Force HTTPS" in cPanel instead.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} off [OR]
+  RewriteCond %{HTTP_HOST} ^www\. [NC]
+  RewriteRule ^ https://avion.com.ng%{REQUEST_URI} [L,R=301]
+
+  # Old WordPress home URL
+  RewriteRule ^index\.php$ / [L,R=301]
+</IfModule>
+
+# ---- Don't serve project files that aren't part of the site ----
+RedirectMatch 404 /\.git
+<FilesMatch "(^\.|\.(md|ps1)$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# ---- Security headers ----
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ---- Compression ----
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript text/javascript application/json image/svg+xml text/xml application/xml text/plain
+</IfModule>
+
+# ---- Browser caching ----
+# CSS/JS are cached for a week; after editing them, visitors may need a refresh to see changes.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 hour"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType text/javascript "access plus 7 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+  ExpiresByType video/mp4 "access plus 30 days"
+</IfModule>
